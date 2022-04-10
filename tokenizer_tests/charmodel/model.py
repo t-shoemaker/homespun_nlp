@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from collections import Counter
 import json
-import matplotlib.pyplot as plt
 
 class CharRNN(object):   
     """This is a minimal character-level Vanilla RNN model, written by Andrej Karpathy.
@@ -43,8 +41,6 @@ class CharRNN(object):
         self.loss = 0
         # static perplexity score
         self.perplexity = 0
-        # tracking all the metrics over the course of training
-        self.training_info = {'iter': [], 'loss': [], 'perp': []}
         # a static hidden state for character generation
         self.hprev = np.zeros((self.hidden_size, 1))
 
@@ -126,8 +122,12 @@ class CharRNN(object):
             
         return idxes
     
-    def train(self, sample_rate=100, sample_size=200):
+    def train(self, n_iters=10000, sample_rate=100, sample_size=200):
         """Train the model."""
+        # set up a performance metric tracker
+        self.training_info = {'iter': [], 'loss': [], 'perp': []}
+
+        # n is iters, p is data pointer
         n, p = 0, 0
         mWxh = np.zeros_like(self.Wxh)
         mWhh = np.zeros_like(self.Whh)
@@ -186,6 +186,8 @@ class CharRNN(object):
             p += self.seq_length
             # iteration counter
             n += 1
+            if n > n_iters:
+                break
 
     def generate(self, char, n_chars=200):
         char_idx = self.char_to_idx[char]
@@ -193,19 +195,6 @@ class CharRNN(object):
         txt = char + ''.join(self.idx_to_char[idx] for idx in sample_idx)
         return txt
             
-    def plot_performance(self, metric=None, size=10):
-        chunks = zip(
-            np.array_split(self.training_info['iter'], size),
-            np.array_split(self.training_info[metric], size)
-        )
-        graph_data = [(a[0], b[0]) for a, b in chunks]
-        x = [i[0] for i in graph_data]
-        y = [i[1] for i in graph_data]
-        fig = plt.figure(figsize=(15,9))
-        plt.plot(x, y)
-        plt.ticklabel_format(style='plain');
-        plt.savefig(metric + '.png', format='png')
-
     def save_training_info(self, filepath):
         with open(filepath, 'w') as j:
             json.dump(self.training_info, j)
