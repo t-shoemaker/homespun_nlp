@@ -7,8 +7,7 @@ import json
 import matplotlib.pyplot as plt
 
 class RNN(object):   
-    """This is a minimal character-level Vanilla RNN model, written by 
-    Andrej Karpathy.
+    """This is a minimal character-level Vanilla RNN model, written by Andrej Karpathy.
     
     Original: https://gist.github.com/karpathy/d4dee566867f8291f086
     """
@@ -28,7 +27,6 @@ class RNN(object):
         # number of steps to unroll the RNN for
         self.seq_length = seq_length
         self.learning_rate = learning_rate
-        self.training_info = {'iter': [], 'loss': [], 'perp': []}
         
         # input to hidden
         self.Wxh = np.random.randn(self.hidden_size, self.vocab_size) * 0.01
@@ -41,7 +39,16 @@ class RNN(object):
         # output bias
         self.by = np.zeros((self.vocab_size, 1))
 
-    def loss(self, inputs, targets, hprev):
+        # static loss score
+        self.loss = 0
+        # static perplexity score
+        self.perplexity = 0
+        # tracking all the metrics over the course of training
+        self.training_info = {'iter': [], 'loss': [], 'perp': []}
+        # a static hidden state for character generation
+        self.hprev = np.zeros((self.hidden_size, 1))
+
+    def calculate_loss(self, inputs, targets, hprev):
         """Calculate the loss for a pass.
         
         targets and inputs are lists of integers (chars from the training data)
@@ -149,17 +156,21 @@ class RNN(object):
                 print(f"=======\n{txt}\n=======\n")
             
             # forward seq_length characters through the net and fetch gradient
-            loss, dWxh, dWhh, dWhy, dbh, dby, hprev = self.loss(inputs, targets, hprev)
+            loss, dWxh, dWhh, dWhy, dbh, dby, hprev = self.calculate_loss(inputs, targets, hprev)
             smooth_loss = smooth_loss * 0.999 + loss * 0.001
             # print progress and
             if n % sample_rate == 0:
+                # update the static hidden state
+                self.hprev = hprev
                 # calculate perplexity, which can apparently be done from the cross-entropy, as per
                 # https://stackoverflow.com/questions/61988776/how-to-calculate-perplexity-for-a-language-model-using-pytorch
-                perplexity = np.exp(smooth_loss)
+                self.perplexity = np.exp(smooth_loss)
+                self.loss = smooth_loss
+
                 self.training_info['iter'].append(n)
-                self.training_info['loss'].append(smooth_loss)
-                self.training_info['perp'].append(perplexity)
-                print(f"+ iter {n}\n+ loss: {smooth_loss:0.6f}\n+ perplexity: {perplexity:0.6f}\n")
+                self.training_info['loss'].append(self.loss)
+                self.training_info['perp'].append(self.perplexity)
+                print(f"+ iter {n}\n+ loss: {self.loss:0.6f}\n+ perplexity: {self.perplexity:0.6f}\n")
             
             # perform parameter update with Adagrad
             for param, dparam, mem in zip(
@@ -175,6 +186,12 @@ class RNN(object):
             p += self.seq_length
             # iteration counter
             n += 1
+
+    def generate(self, char, n_chars=200):
+        char_idx = self.char_to_idx[char]
+        sample_idx = self.sample(self.hprev, char_idx, n_chars)
+        txt = char + ''.join(self.idx_to_char[idx] for idx in sample_idx)
+        return txt
             
     def plot_performance(self, metric=None, size=10):
         chunks = zip(
