@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 from argparse import ArgumentParser
-from charmodel.model import CharRNN
+from charmodel.vanilla import RNN
 from charmodel.utils import plot_performance
 from charmodel.utils import load_rnn, save_rnn
 
 def main(args):
-    rnn = CharRNN(args.training_data, 100, 25, 1e-1)
+    rnn = RNN(args.training_data, 100, 25, 1e-1)
     rnn.train(n_iters=args.n_iters)
 
     for metric in ['loss', 'perp']:

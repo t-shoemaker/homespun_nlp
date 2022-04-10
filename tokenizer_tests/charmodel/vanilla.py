@@ -4,13 +4,16 @@
 import numpy as np
 import json
 
-class CharRNN(object):   
+class RNN(object):   
     """This is a minimal character-level Vanilla RNN model, written by Andrej Karpathy.
     
     Original: https://gist.github.com/karpathy/d4dee566867f8291f086
     """
     
     def __init__(self, filepath, hidden_size, seq_length, learning_rate):
+        # declare the model backend for functionality in the utilities
+        self.backend = 'vanilla'
+
         fin = open(filepath, 'r')
         self.data = fin.read()
         self.chars = list(set(self.data))
