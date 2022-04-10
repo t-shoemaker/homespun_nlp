@@ -6,7 +6,7 @@ from collections import Counter
 import json
 import matplotlib.pyplot as plt
 
-class RNN(object):   
+class CharRNN(object):   
     """This is a minimal character-level Vanilla RNN model, written by Andrej Karpathy.
     
     Original: https://gist.github.com/karpathy/d4dee566867f8291f086
@@ -161,7 +161,7 @@ class RNN(object):
             # print progress and
             if n % sample_rate == 0:
                 # update the static hidden state
-                self.hprev = hprev
+                self.hprev = np.copy(hprev)
                 # calculate perplexity, which can apparently be done from the cross-entropy, as per
                 # https://stackoverflow.com/questions/61988776/how-to-calculate-perplexity-for-a-language-model-using-pytorch
                 self.perplexity = np.exp(smooth_loss)
