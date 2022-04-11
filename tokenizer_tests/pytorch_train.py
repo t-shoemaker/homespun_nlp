@@ -2,29 +2,25 @@
 # -*- coding: utf-8 -*-
 
 from argparse import ArgumentParser
-from charmodel.vanilla import RNN
+import torch
+from charmodel.pytorch import Model
 from charmodel.utils import plot_performance
-from charmodel.utils import load_vanilla, save_vanilla
 
 def main(args):
-    rnn = RNN(args.training_data, 100, 25, 1e-1)
-    rnn.train(n_iters=args.n_iters)
+    model = Model(args.training_data)
+    model.train()
 
     for metric in ['loss', 'perp']:
-        plot_performance(rnn, model_name=args.model_name, metric=metric)
+        plot_performance(model, model_name=args.model_name, metric=metric)
 
-    rnn.save_training_info(args.model_name + '_info.json')
-    save_vanilla(rnn, args.model_name)
+    model.save_training_info(args.model_name + '_info.json')
+    torch.save(model, args.model_name)
 
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument(
         '--training_data',
         type=str
-    )
-    parser.add_argument(
-        '--n_iters',
-        type=int
     )
     parser.add_argument(
         '--model_name',
