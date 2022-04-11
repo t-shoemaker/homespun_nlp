@@ -14,7 +14,15 @@ def main(args):
         plot_performance(model, model_name=args.model_name, metric=metric)
 
     model.save_training_info(args.model_name + '_info.json')
-    torch.save(model, args.model_name)
+    
+    samples = []
+    for c in ['The', 'A', 'I', 'One']:
+        samp = model.sample(200, prime=c)
+        samples.append(samp)
+
+    with open(args.model_name + '.txt', 'a') as fout:
+        for samp in samples:
+            fout.write(samp + '\n')
 
 if __name__ == '__main__':
     parser = ArgumentParser()

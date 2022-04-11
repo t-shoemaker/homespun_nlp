@@ -19,10 +19,6 @@ def plot_performance(model, model_name='', metric=None, size=10):
     plt.xlabel('iterations')
     plt.ylabel(metric)
 
-    if metric == 'perp':
-        plt.ticklabel_format(style='plain')
-        plt.yscale('log')
-
     plt.savefig(f"{model_name}_{metric}.png", format='png')
 
 def load_vanilla(filepath):
